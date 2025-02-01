@@ -1,0 +1,59 @@
+Name,County_Name__c,State__c,Territory_Name__c
+Alameda,Alameda,CA,Central
+Alpine,Alpine,CA,Central
+Amador,Amador,CA,Central
+Butte,Butte,CA,Central
+Calaveras,Calaveras,CA,Central
+Colusa,Colusa,CA,Central
+Contra Costa,Contra Costa,CA,Central
+Del Norte,Del Norte,CA,Central
+El Dorado,El Dorado,CA,Central
+Fresno,Fresno,CA,Central
+Glenn,Glenn,CA,Central
+Humboldt,Humboldt,CA,Central
+Imperial,Imperial,CA,Central
+Inyo,Inyo,CA,Central
+Kern,Kern,CA,Central
+Kings,Kings,CA,Central
+Lake,Lake,CA,Central
+Lassen,Lassen,CA,Central
+Los Angeles,Los Angeles,CA,Central
+Madera,Madera,CA,Central
+Marin,Marin,CA,Central
+Mariposa,Mariposa,CA,Central
+Mendocino,Mendocino,CA,Central
+Merced,Merced,CA,Central
+Modoc,Modoc,CA,Central
+Mono,Mono,CA,Central
+Monterey,Monterey,CA,Central
+Napa,Napa,CA,Central
+Nevada,Nevada,CA,Central
+Orange,Orange,CA,Central
+Placer,Placer,CA,Northern
+Plumas,Plumas,CA,Northern
+Riverside,Riverside,CA,Northern
+Sacramento,Sacramento,CA,Northern
+San Benito,San Benito,CA,Northern
+San Bernardino,San Bernardino,CA,Northern
+San Diego,San Diego,CA,Northern
+San Francisco,San Francisco,CA,Northern
+San Joaquin,San Joaquin,CA,Northern
+San Luis Obispo,San Luis Obispo,CA,Northern
+San Mateo,San Mateo,CA,Northern
+Santa Barbara,Santa Barbara,CA,Northern
+Santa Clara,Santa Clara,CA,Southern
+Santa Cruz,Santa Cruz,CA,Southern
+Shasta,Shasta,CA,Southern
+Sierra,Sierra,CA,Southern
+Siskiyou,Siskiyou,CA,Southern
+Solano,Solano,CA,Southern
+Sonoma,Sonoma,CA,Southern
+Stanislaus,Stanislaus,CA,Southern
+Sutter,Sutter,CA,Southern
+Tehama,Tehama,CA,Southern
+Trinity,Trinity,CA,Southern
+Tulare,Tulare,CA,Southern
+Tuolumne,Tuolumne,CA,Southern
+Ventura,Ventura,CA,Southern
+Yolo,Yolo,CA,Southern
+Yuba,Yuba,CA,Southern
