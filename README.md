@@ -10,8 +10,7 @@ Preparation:
 
 1. Create a Salesforce Project
 2. Authorize an Org
-    - rdavis7408+SED24Secondary@gmail.com
-    - SEDreamin24!2024
+
 3. Update a package manifest with following:
     - SFDX Package.xml Generator: Choose Metadata Components
 4. Authorize an Org
