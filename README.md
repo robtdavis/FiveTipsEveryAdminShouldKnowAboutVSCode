@@ -3,7 +3,7 @@ Preparation:
 - Make sure flows are deleted out of Secondary Org
 - Make sure flow with RT has RT commented out 
 - Make sure custom metadata is deleted out of Secondary Org
-- remove login json in c:/Users/RobertDavis/.sfdx
+- remove login json in c:/Users/XXXXXXXX/.sfdx
 - Make sure manifest has flow commented out so it does not push
 
 
