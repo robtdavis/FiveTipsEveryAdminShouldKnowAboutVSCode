@@ -1,4 +1,4 @@
-name: Renew Agentforce Dev Org Lease
+name: Renew Five Tips Every Admin Should Know About VS Code Dev Org Lease
 run-name: ${{ github.actor }} triggered dev org renewal build
 #on: [push]
 on:
@@ -8,7 +8,7 @@ on:
 jobs:
   dev-org-renew:
     runs-on: ubuntu-latest
-    environment: AFDevOrgRenew
+    environment: AuthorizedProjectOrg
     steps:
       - uses: actions/checkout@v4
         with: 
