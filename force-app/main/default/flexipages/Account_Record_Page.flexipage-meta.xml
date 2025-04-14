@@ -6,13 +6,7 @@
                 <componentInstanceProperties>
                     <name>actionNames</name>
                     <valueList>
-                        <valueListItems>
-                            <value>Account.Launch_LWC</value>
-                        </valueListItems>
-                        <valueListItems>
-                            <value>Account.Launch_LWC2</value>
-                        </valueListItems>
-                        <valueListItems>
+                         <valueListItems>
                             <value>FeedItem.TextPost</value>
                         </valueListItems>
                         <valueListItems>
@@ -191,16 +185,7 @@
                 <identifier>RecordAnnualRevenueField</identifier>
             </fieldInstance>
         </itemInstances>
-        <itemInstances>
-            <fieldInstance>
-                <fieldInstanceProperties>
-                    <name>uiBehavior</name>
-                    <value>none</value>
-                </fieldInstanceProperties>
-                <fieldItem>Record.Status__c</fieldItem>
-                <identifier>RecordStatus_cField</identifier>
-            </fieldInstance>
-        </itemInstances>
+        
         <name>Facet-1d311f88-7e22-4a5a-b2ba-8a468349d4f4</name>
         <type>Facet</type>
     </flexiPageRegions>
