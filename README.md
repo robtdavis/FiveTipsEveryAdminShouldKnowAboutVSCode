@@ -65,6 +65,8 @@ Preparation:
 35. Show variables and formulas
 36. Save as a PNG
 
+--------ExtensionTotal------
+37: Control + Shift + P => ExtensionTotal: Scan Extensions
 
 
 
