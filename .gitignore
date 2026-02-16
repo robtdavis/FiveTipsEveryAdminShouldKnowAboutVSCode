@@ -52,4 +52,9 @@ config/user/
 
 # Files with sensitive org data
 Five-More-README.md
+scripts/ContactJSON.json
+
+# Temporary and generated folders
+tmp/
+hardis-report/
 
