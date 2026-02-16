@@ -43,3 +43,13 @@ $RECYCLE.BIN/
 **/__pycache__/
 **/.venv/
 **/venv/
+
+# VS Code settings with user-specific configurations
+.vscode/settings.json
+
+# User-specific configuration files
+config/user/
+
+# Files with sensitive org data
+Five-More-README.md
+
