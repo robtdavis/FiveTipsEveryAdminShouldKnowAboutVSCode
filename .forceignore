@@ -2,7 +2,7 @@
 # More information: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_exclude_source.htm
 #
 
-package.xml
+
 
 # LWC configuration files
 **/jsconfig.json
@@ -13,3 +13,29 @@ package.xml
 **/tsconfig.json
 
 **/*.ts
+
+# Suppress standard Flow Orchestration reports
+**/unfiled$public/flow_orchestration_*
+**/unfiled$public/flow_screen_prebuilt_report
+
+# Suppress any public folder reports you don’t track
+**/unfiled$public/*
+
+# Suppress managed package metadata
+**/installedPackages/*
+**/aura/flowruntime_*
+**/lwc/flowruntime_*
+
+# Optional: Ignore Org-level metadata like Email services, AppSwitcher menus, etc.
+**/emailservices/*
+**/appMenus/AppSwitcher.appMenu-meta.xml
+
+# Optional: Ignore Scratch Org-specific Connected Apps
+**/connectedApps/*DEVHUB*
+
+# Optional: Ignore other auto-generated artifacts
+**/profiles/Admin.profile-meta.xml
+**/customMetadata/Installed_Package_*
+
+**/.vscode/*
+.sfdx/*
