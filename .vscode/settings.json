@@ -5,9 +5,7 @@
     "**/.sfdx": true
   },
   "salesforcedx-vscode-core.show-cli-success-msg": false,
-  "workbench.colorCustomizations": {
-    "statusBar.background": "#2f53a8",
-    "activityBar.background": "#2f53a8"
-  },
-  "CodeGPT.apiKey": "CodeGPT Plus"
+  "workbench.colorCustomizations": {},
+  "CodeGPT.apiKey": "CodeGPT Plus",
+  "sf.defaultusername": "rdavis7408+sed24primary@gmail.com"
 }
