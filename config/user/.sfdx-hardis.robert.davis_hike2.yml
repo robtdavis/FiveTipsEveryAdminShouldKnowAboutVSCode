@@ -1,0 +1,20 @@
+installedApps:
+  - git
+sfdxPluginsStdout: |
+  @salesforce/sfdx-scanner 4.12.0 (4.12.0)
+  code-analyzer 5.5.0
+  custom-metadata 3.3.68 (3.3.68)
+  dev 2.5.1 (2.5.1)
+  lightning-flow-scanner 5.6.2
+  packaging 2.22.2
+  sfdmu 4.38.0
+  sfdx-git-delta 6.23.0
+  sfdx-hardis 6.9.0
+  texei-sfdx-plugin 2.8.4
+
+  Uninstalled JIT Plugins:
+  community 3.3.41
+  devops-center 1.2.27
+  flow 1.0.2
+  signups 2.6.48
+  @salesforce/sfdx-plugin-lwc-test 1.2.1

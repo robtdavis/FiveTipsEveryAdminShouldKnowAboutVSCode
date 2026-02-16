@@ -1,0 +1,11 @@
+{
+  "sfdxHardisLabel": "Opportunity Files Export",
+  "sfdxHardisDescription": "",
+  "soqlQuery": "SELECT Id,Name FROM Opportunity",
+  "fileTypes": "all",
+  "fileSizeMin": 0,
+  "outputFolderNameField": "Name",
+  "outputFileNameFormat": "title",
+  "overwriteParentRecords": true,
+  "overwriteFiles": false
+}
