@@ -1,0 +1,1086 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFDX Flow Analysis Report</title>
+    <style>
+        :root {
+            --sidebar-width: 350px;
+            --sidebar-width-collapsed: 60px;
+            --sidebar-width-mobile: 220px;
+            --loops-background-color:rgb(216, 192, 239);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        
+        /* Sticky Header */
+        .page-header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 200;
+            box-sizing: border-box;
+        }
+        
+        .page-header h1 {
+            color: #0078d7;
+            margin: 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #0078d7;
+        }
+        
+        .page-header p {
+            margin: 5px 0 0;
+            color: #666;
+        }
+        
+        /* Page Layout */
+        .page-container {
+            display: flex;
+            min-height: calc(100vh - 100px); /* Account for header height */
+            position: relative;
+            margin-top: 0;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: #f0f0f0;
+            border-right: 1px solid #ddd;
+            padding: 20px 0;
+            position: sticky;
+            top: 100px; /* Position below the header */
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .sidebar-content {
+            padding: 0 15px;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;
+        }
+        
+        .sidebar-toggle button {
+            background: #0078d7;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .sidebar h2 {
+            color: #0078d7;
+            font-size: 18px;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 0;
+            max-width: calc(100% - var(--sidebar-width));
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        /* For sidebar collapsed state */
+        .sidebar-collapsed .sidebar {
+            width: var(--sidebar-width-collapsed);
+            padding: 20px 0;
+        }
+        
+        .sidebar-collapsed .sidebar-content {
+            display: none;
+        }
+        
+        .sidebar-collapsed .sidebar-toggle {
+            display: block;
+            position: fixed;
+            left: 10px;
+            top: 110px; /* Position below the header */
+        }
+        
+        .sidebar-collapsed .main-content {
+            margin-left: var(--sidebar-width-collapsed);
+            max-width: calc(100% - var(--sidebar-width-collapsed));
+        }
+        
+        /* TOC Styles */
+        .toc-list {
+            margin: 0;
+            padding-left: 20px;
+            list-style-type: none;
+        }
+        
+        .toc-list > li {
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+        
+        .toc-sublist {
+            margin-top: 5px;
+            margin-bottom: 10px;
+            padding-left: 20px;
+            list-style-type: circle;
+        }
+        
+        .toc-sublist > li {
+            font-weight: normal;
+            margin-bottom: 5px;
+        }
+        
+        .toc a {
+            color: #0078d7;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        h2.object-heading {
+            background-color: #0078d7;
+            color: white;
+            padding: 10px 15px;
+            margin-top: 30px;
+            margin-bottom: 0;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        h3.trigger-heading {
+            background-color: #f0f0f0;
+            padding: 8px 15px;
+            margin: 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 16px;
+        }
+        
+        h4.flow-heading {
+            background-color: #e0e0e0;
+            padding: 8px 15px;
+            margin: 15px 0 0 0;
+            font-size: 14px;
+            border-radius: 5px 5px 0 0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+        }
+        
+        .flows-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 15px;
+            background-color: #fafafa;
+        }
+        
+        .flow-table-container {
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .flow-detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+            table-layout: fixed;
+        }
+        
+        .flow-detail-table th, .flow-detail-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: top;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .flow-detail-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+            width: 30%;
+        }
+        
+        .flow-detail-table tr:nth-child(even) td {
+            background-color: #f9f9f9;
+        }
+        
+        .status-active {
+            color: green;
+            font-weight: bold;
+        }
+        
+        .status-draft {
+            color: orange;
+        }
+        
+        .status-inactive {
+            color: red;
+        }
+        
+        .object-section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .trigger-section {
+            border-top: 1px solid #ddd;
+        }
+        
+        .entry-criteria {
+            white-space: pre-line;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+        }
+        
+        /* Record operations */
+        .record-operations {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+        }
+        
+        .record-ops {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .record-get {
+            color: #2962FF;
+            font-weight: bold;
+        }
+        
+        .record-update {
+            color: #FFA000;
+            font-weight: bold;
+        }
+        
+        .record-create {
+            color: #43A047;
+            font-weight: bold;
+        }
+        
+        /* Cautions column */
+        .cautions {
+            font-size: 12px;
+        }
+        
+        .cautions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .caution-item {
+            padding: 3px 5px;
+            background-color: #fff3cd;
+            border-left: 3px solid #ffc107;
+            margin-bottom: 2px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .has-cautions {
+            background-color: #fff8e6;
+        }
+        /* Loop styling */
+
+        .record-loops {
+            background-color: var(--loops-background-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-right: 5px;
+        }
+
+        .loops-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .loops-summary {
+            font-weight: 500;
+        }
+
+        .loops-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .loop-item {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f0f0f8;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border-left: 3px solid #6b7be3;
+        }
+
+        .loop-factor {
+        border-left: 3px solid var(--loops-background-color);
+        padding-left: 5px;
+        background-color: #f5f0ff;
+    }
+
+        .complex-loop {
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .loop-name {
+            font-weight: 500;
+        }
+
+        .loop-elements {
+            color: #666;
+        }
+        
+        /* Performance Rating Styles */
+
+        .rating-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+
+        .rating-low {
+            background-color: #28a745;
+        }
+
+        .rating-medium {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .rating-high {
+            background-color: #fd7e14;
+        }
+
+        .rating-very-high {
+            background-color: #dc3545;
+        }
+
+        .rating-unknown {
+            background-color: #6c757d;
+        }
+
+        .rating-display {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .rating-score {
+            font-size: 14px;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .rating-progress {
+            height: 8px;
+            width: 100px;
+            background-color: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+
+        .rating-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .rating-bar.rating-low {
+            background-color: #28a745;
+        }
+
+        .rating-bar.rating-medium {
+            background-color: #ffc107;
+        }
+
+        .rating-bar.rating-high {
+            background-color: #fd7e14;
+        }
+
+        .rating-bar.rating-very-high {
+            background-color: #dc3545;
+        }
+
+        .rating-factors-container {
+            position: relative;
+        }
+
+        .rating-factors-toggle {
+            cursor: pointer;
+            color: #0275d8;
+            text-decoration: underline;
+            font-size: 13px;
+        }
+
+        .rating-factors-tooltip {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 100;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        .rating-factors-tooltip.visible {
+            display: block;
+        }
+
+        .rating-factors-tooltip ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .rating-factors-tooltip li {
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        /* Rating Legend in Sidebar */
+        .rating-legend {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .rating-legend h3 {
+            margin-top: 0;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .rating-scale {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rating-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rating-desc {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Flow heading with rating badge */
+        .flow-heading {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        /* Rating cell styles */
+        .rating-cell {
+            padding: 8px !important;
+        }
+
+        /* Record operations styling */
+        .record-operations {
+            padding: 5px !important;
+        }
+
+        .record-ops {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .record-get, .record-update, .record-create {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .record-get {
+            background-color: #e7f5ff;
+            color: #0063cc;
+        }
+
+        .record-update {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .record-create {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: var(--sidebar-width-mobile);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: calc(100% - var(--sidebar-width-mobile));
+            }
+            
+            .sidebar-collapsed .sidebar {
+                width: 0;
+                padding: 0;
+            }
+            
+            .sidebar-collapsed .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .flows-grid {
+                flex-direction: column;
+            }
+            
+            .flow-table-container {
+                flex: 1 1 100%;
+            }
+            
+            .page-header {
+                padding: 10px;
+            }
+            
+            .page-header h1 {
+                font-size: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .page-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                top: 0;
+            }
+            
+            .main-content {
+                max-width: 100%;
+                margin-left: 0;
+            }
+            
+            .sidebar-collapsed .sidebar {
+                display: none;
+            }
+            
+            .sidebar-collapsed .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+            
+            .sidebar-toggle {
+                top: 110px;
+                left: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="page-header">
+        <h1>Flow Analysis Report</h1>
+        <p>Generated on 2/23/2026, 3:24:12 PM</p>
+    </header>
+    <div class="page-container">
+        <div class="sidebar">
+            <div class="sidebar-content">
+                <h2>Table of Contents</h2>
+                <ul class="toc-list">
+<li><a href="#object-Opportunity">Opportunity</a><ul class="toc-sublist"><li><a href="#object-Opportunity-Unknown">Unknown Trigger (1)</a></li></ul></li><li><a href="#object-Account">Account</a><ul class="toc-sublist"><li><a href="#object-Account-RecordAfterSave">RecordAfterSave (1)</a></li></ul></li><li><a href="#object-Unknown">Unknown</a><ul class="toc-sublist"><li><a href="#object-Unknown-Unknown">Unknown Trigger (3)</a></li></ul></li>
+                </ul>
+                <div class="rating-legend">
+                    <h3>Performance Impact Rating</h3>
+                    <div class="rating-scale">
+                        <div class="rating-item">
+                            <span class="rating-badge rating-low">Low</span>
+                            <span class="rating-desc">Minimal performance impact</span>
+                        </div>
+                        <div class="rating-item">
+                            <span class="rating-badge rating-medium">Medium</span>
+                            <span class="rating-desc">Moderate performance impact</span>
+                        </div>
+                        <div class="rating-item">
+                            <span class="rating-badge rating-high">High</span>
+                            <span class="rating-desc">Significant performance impact</span>
+                        </div>
+                        <div class="rating-item">
+                            <span class="rating-badge rating-very-high">Very High</span>
+                            <span class="rating-desc">Critical performance impact</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-toggle">
+                    <button id="toggleSidebar">≡</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            
+    
+            <div class="object-section" id="object-Opportunity">
+                <h2 class="object-heading">Opportunity</h2>
+        
+                <div class="trigger-section" id="object-Opportunity-Unknown">
+                    <h3 class="trigger-heading">Unknown Trigger (1)</h3>
+                    <div class="flows-grid">
+            
+                    <div class="flow-table-container" id="flow-object-Opportunity-object-Opportunity-Unknown-0">
+                        <h4 class="flow-heading">
+                            Account_ACU_CreateOpp
+                            <span class="rating-badge rating-low">Low</span>
+                        </h4>
+                        <table class="flow-detail-table">
+                            <tbody>
+                                <tr>
+                                    <th>Flow Name</th>
+                                    <td>Account_ACU_CreateOpp</td>
+                                </tr>
+                                <tr>
+                                    <th>Flow Type</th>
+                                    <td>AutoLaunchedFlow</td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td class="status-active">Active</td>
+                                </tr>
+                                <tr>
+                                    <th>Performance Impact</th>
+                                    <td class="rating-cell">
+                                        <div class="rating-display">
+                                            <span class="rating-badge rating-low">Low</span>
+                                            <span class="rating-score">21/100</span>
+                                            <div class="rating-progress">
+                                                <div class="rating-bar rating-low" style="width: 21%"></div>
+                                            </div>
+                                            <div class="rating-factors-container">
+                                                <span class="rating-factors-toggle">Factors</span>
+                                                <div class="rating-factors-tooltip">
+                        <ul>
+                            <li class="">Screen/Manual flow (baseline)</li><li class="">No entry criteria specified (+15)</li><li class="">GET operations: 2 (+6)</li>
+                        </ul>
+                    </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Record Operations</th>
+                                    <td class="record-operations"><div class="record-ops">
+                        <span class="record-get">GET: 2</span>
+                        <span class="record-update">UPDATE: 0</span>
+                        <span class="record-create">CREATE: 0</span>
+                        <span class="record-loops">LOOPS: 0</span>
+                    </div></td>
+                                </tr>
+                                <tr>
+                                    <th>Loop Details</th>
+                                    <td class="loop-details">
+                                        No loops detected
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Entry Criteria</th>
+                                    <td class="entry-criteria">N/A</td>
+                                </tr>
+                                <tr>
+                                    <th>Performance Cautions</th>
+                                    <td class="cautions ">None</td>
+                                </tr>
+                                <tr>
+                                    <th>Description</th>
+                                    <td>Create Opportunity for Account</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                
+                    </div>
+                </div>
+            </div>
+            <div class="object-section" id="object-Account">
+                <h2 class="object-heading">Account</h2>
+        
+                <div class="trigger-section" id="object-Account-RecordAfterSave">
+                    <h3 class="trigger-heading">RecordAfterSave (1)</h3>
+                    <div class="flows-grid">
+            
+                    <div class="flow-table-container" id="flow-object-Account-object-Account-RecordAfterSave-0">
+                        <h4 class="flow-heading">
+                            Account_AU_UpdateContactAddresses
+                            <span class="rating-badge rating-medium">Medium</span>
+                        </h4>
+                        <table class="flow-detail-table">
+                            <tbody>
+                                <tr>
+                                    <th>Flow Name</th>
+                                    <td>Account_AU_UpdateContactAddresses</td>
+                                </tr>
+                                <tr>
+                                    <th>Flow Type</th>
+                                    <td>AutoLaunchedFlow</td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td class="status-active">Active</td>
+                                </tr>
+                                <tr>
+                                    <th>Performance Impact</th>
+                                    <td class="rating-cell">
+                                        <div class="rating-display">
+                                            <span class="rating-badge rating-medium">Medium</span>
+                                            <span class="rating-score">30/100</span>
+                                            <div class="rating-progress">
+                                                <div class="rating-bar rating-medium" style="width: 30%"></div>
+                                            </div>
+                                            <div class="rating-factors-container">
+                                                <span class="rating-factors-toggle">Factors</span>
+                                                <div class="rating-factors-tooltip">
+                        <ul>
+                            <li class="">Screen/Manual flow (baseline)</li><li class="">Non-specific entry criteria (+10)</li><li class="">UPDATE operations: 1 (+5)</li><li class="">Contains DML operations (+15)</li>
+                        </ul>
+                    </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Record Operations</th>
+                                    <td class="record-operations"><div class="record-ops">
+                        <span class="record-get">GET: 0</span>
+                        <span class="record-update">UPDATE: 1</span>
+                        <span class="record-create">CREATE: 0</span>
+                        <span class="record-loops">LOOPS: 0</span>
+                    </div></td>
+                                </tr>
+                                <tr>
+                                    <th>Loop Details</th>
+                                    <td class="loop-details">
+                                        No loops detected
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Entry Criteria</th>
+                                    <td class="entry-criteria">Trigger Type: Update</td>
+                                </tr>
+                                <tr>
+                                    <th>Performance Cautions</th>
+                                    <td class="cautions has-cautions"><div class="cautions-list"><div class="caution-item">DML Operations: Contains record Updates</div></div></td>
+                                </tr>
+                                <tr>
+                                    <th>Description</th>
+                                    <td>Update the Contact Addresses to match the business address</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                
+                    </div>
+                </div>
+            </div>
+            <div class="object-section" id="object-Unknown">
+                <h2 class="object-heading">Unknown</h2>
+        
+                <div class="trigger-section" id="object-Unknown-Unknown">
+                    <h3 class="trigger-heading">Unknown Trigger (3)</h3>
+                    <div class="flows-grid">
+            
+                    <div class="flow-table-container" id="flow-object-Unknown-object-Unknown-Unknown-0">
+                        <h4 class="flow-heading">
+                            Create Child Campaign
+                            <span class="rating-badge rating-medium">Medium</span>
+                        </h4>
+                        <table class="flow-detail-table">
+                            <tbody>
+                                <tr>
+                                    <th>Flow Name</th>
+                                    <td>Create Child Campaign</td>
+                                </tr>
+                                <tr>
+                                    <th>Flow Type</th>
+                                    <td>AutoLaunchedFlow</td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td class="status-active">Active</td>
+                                </tr>
+                                <tr>
+                                    <th>Performance Impact</th>
+                                    <td class="rating-cell">
+                                        <div class="rating-display">
+                                            <span class="rating-badge rating-medium">Medium</span>
+                                            <span class="rating-score">35/100</span>
+                                            <div class="rating-progress">
+                                                <div class="rating-bar rating-medium" style="width: 35%"></div>
+                                            </div>
+                                            <div class="rating-factors-container">
+                                                <span class="rating-factors-toggle">Factors</span>
+                                                <div class="rating-factors-tooltip">
+                        <ul>
+                            <li class="">Screen/Manual flow (baseline)</li><li class="">No entry criteria specified (+15)</li><li class="">CREATE operations: 1 (+5)</li><li class="">Contains DML operations (+15)</li>
+                        </ul>
+                    </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Record Operations</th>
+                                    <td class="record-operations"><div class="record-ops">
+                        <span class="record-get">GET: 0</span>
+                        <span class="record-update">UPDATE: 0</span>
+                        <span class="record-create">CREATE: 1</span>
+                        <span class="record-loops">LOOPS: 0</span>
+                    </div></td>
+                                </tr>
+                                <tr>
+                                    <th>Loop Details</th>
+                                    <td class="loop-details">
+                                        No loops detected
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Entry Criteria</th>
+                                    <td class="entry-criteria">N/A</td>
+                                </tr>
+                                <tr>
+                                    <th>Performance Cautions</th>
+                                    <td class="cautions has-cautions"><div class="cautions-list"><div class="caution-item">DML Operations: Contains record Creates</div></div></td>
+                                </tr>
+                                <tr>
+                                    <th>Description</th>
+                                    <td>N/A</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                
+                    <div class="flow-table-container" id="flow-object-Unknown-object-Unknown-Unknown-1">
+                        <h4 class="flow-heading">
+                            Duplicate DML Operation
+                            <span class="rating-badge rating-medium">Medium</span>
+                        </h4>
+                        <table class="flow-detail-table">
+                            <tbody>
+                                <tr>
+                                    <th>Flow Name</th>
+                                    <td>Duplicate DML Operation</td>
+                                </tr>
+                                <tr>
+                                    <th>Flow Type</th>
+                                    <td>Flow</td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td class="status-active">Active</td>
+                                </tr>
+                                <tr>
+                                    <th>Performance Impact</th>
+                                    <td class="rating-cell">
+                                        <div class="rating-display">
+                                            <span class="rating-badge rating-medium">Medium</span>
+                                            <span class="rating-score">35/100</span>
+                                            <div class="rating-progress">
+                                                <div class="rating-bar rating-medium" style="width: 35%"></div>
+                                            </div>
+                                            <div class="rating-factors-container">
+                                                <span class="rating-factors-toggle">Factors</span>
+                                                <div class="rating-factors-tooltip">
+                        <ul>
+                            <li class="">Screen/Manual flow (baseline)</li><li class="">No entry criteria specified (+15)</li><li class="">CREATE operations: 1 (+5)</li><li class="">Contains DML operations (+15)</li>
+                        </ul>
+                    </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Record Operations</th>
+                                    <td class="record-operations"><div class="record-ops">
+                        <span class="record-get">GET: 0</span>
+                        <span class="record-update">UPDATE: 0</span>
+                        <span class="record-create">CREATE: 1</span>
+                        <span class="record-loops">LOOPS: 0</span>
+                    </div></td>
+                                </tr>
+                                <tr>
+                                    <th>Loop Details</th>
+                                    <td class="loop-details">
+                                        No loops detected
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Entry Criteria</th>
+                                    <td class="entry-criteria">N/A</td>
+                                </tr>
+                                <tr>
+                                    <th>Performance Cautions</th>
+                                    <td class="cautions has-cautions"><div class="cautions-list"><div class="caution-item">DML Operations: Contains record Creates</div></div></td>
+                                </tr>
+                                <tr>
+                                    <th>Description</th>
+                                    <td>This flow demonstrates a violation of the rule &quot;Duplicate DML Operation&quot;.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                
+                    <div class="flow-table-container" id="flow-object-Unknown-object-Unknown-Unknown-2">
+                        <h4 class="flow-heading">
+                            Hardcoded Id
+                            <span class="rating-badge rating-medium">Medium</span>
+                        </h4>
+                        <table class="flow-detail-table">
+                            <tbody>
+                                <tr>
+                                    <th>Flow Name</th>
+                                    <td>Hardcoded Id</td>
+                                </tr>
+                                <tr>
+                                    <th>Flow Type</th>
+                                    <td>AutoLaunchedFlow</td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td class="status-active">Active</td>
+                                </tr>
+                                <tr>
+                                    <th>Performance Impact</th>
+                                    <td class="rating-cell">
+                                        <div class="rating-display">
+                                            <span class="rating-badge rating-medium">Medium</span>
+                                            <span class="rating-score">35/100</span>
+                                            <div class="rating-progress">
+                                                <div class="rating-bar rating-medium" style="width: 35%"></div>
+                                            </div>
+                                            <div class="rating-factors-container">
+                                                <span class="rating-factors-toggle">Factors</span>
+                                                <div class="rating-factors-tooltip">
+                        <ul>
+                            <li class="">Screen/Manual flow (baseline)</li><li class="">No entry criteria specified (+15)</li><li class="">CREATE operations: 1 (+5)</li><li class="">Contains DML operations (+15)</li>
+                        </ul>
+                    </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Record Operations</th>
+                                    <td class="record-operations"><div class="record-ops">
+                        <span class="record-get">GET: 0</span>
+                        <span class="record-update">UPDATE: 0</span>
+                        <span class="record-create">CREATE: 1</span>
+                        <span class="record-loops">LOOPS: 0</span>
+                    </div></td>
+                                </tr>
+                                <tr>
+                                    <th>Loop Details</th>
+                                    <td class="loop-details">
+                                        No loops detected
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Entry Criteria</th>
+                                    <td class="entry-criteria">N/A</td>
+                                </tr>
+                                <tr>
+                                    <th>Performance Cautions</th>
+                                    <td class="cautions has-cautions"><div class="cautions-list"><div class="caution-item">DML Operations: Contains record Creates</div></div></td>
+                                </tr>
+                                <tr>
+                                    <th>Description</th>
+                                    <td>This flow demonstrates a violation of the rule &quot;Hardcoded Id&quot;.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                
+                    </div>
+                </div>
+            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
+            document.querySelector('.page-container').classList.toggle('sidebar-collapsed');
+        });
+        
+        // Add tooltip functionality for rating factors
+        document.addEventListener('DOMContentLoaded', function() {
+            const ratingToggles = document.querySelectorAll('.rating-factors-toggle');
+            ratingToggles.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tooltip = this.nextElementSibling;
+                    tooltip.classList.toggle('visible');
+                });
+            });
+            
+            // Close tooltips when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('rating-factors-toggle')) {
+                    document.querySelectorAll('.rating-factors-tooltip.visible').forEach(tooltip => {
+                        tooltip.classList.remove('visible');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
